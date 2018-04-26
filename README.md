@@ -12,8 +12,8 @@ running on your local machine.
 
 The following autocmd events would be captured:
 
-- [ ] CursorMoved
-- [ ] CursorMovedI
+- [x] CursorMoved
+- [x] CursorMovedI
 - [ ] VimEnter?
 - [ ] VimLeave?
 - [ ] FocusGained?
