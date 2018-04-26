@@ -39,7 +39,8 @@ endfunction
 
 call digitme#init()
 call s:OpenChannel()
-autocmd InsertCharPre * :call digitme#ping()
+autocmd CursorMove * :call digitme#ping()
+autocmd CursorMoveI * :call digitme#ping()
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
