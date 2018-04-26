@@ -1,2 +1,5 @@
-Execute (digitme#Shout()):
-  AssertEqual "Hello World", digitme#shout()
+Execute (digitme#init()):
+  call digitme#init()
+
+Then(Default Global Variables are set):
+  AssertEqual 'localhost:8763', g:hitme#clientUrl

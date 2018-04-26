@@ -13,17 +13,13 @@ let g:loaded_digitme = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! s:OpenChannel()
-  if !exists('s:channel')
-    let s:channel = ch_open("localhost:8763")
-  else
-    if ch_status(s:channel) != "open"
-      let s:channel = ch_open("localhost:8763")
-    endif
-  endif
+" Default Plugin Options
+function! digitme#init()
+  let g:hitme#clientUrl = get(g:, 'hitme#clientUrl', "localhost:8763")
 endfunction
 
-function! digitme#Ping ()
+" Ping Client When Cursor Moved
+function! digitme#ping ()
   if ch_status(s:channel) == "open"
     call ch_sendexpr(s:channel, {'ping': localtime()})
   else
@@ -31,12 +27,19 @@ function! digitme#Ping ()
   endif
 endfunction
 
-function! digitme#shout ()
-  return "Hello World"
+function! s:OpenChannel()
+  if !exists('s:channel')
+    let s:channel = ch_open(g:hitme#clientUrl)
+  else
+    if ch_status(s:channel) != "open"
+      let s:channel = ch_open(g:hitme#clientUrl)
+    endif
+  endif
 endfunction
 
+call digitme#init()
 call s:OpenChannel()
-autocmd InsertCharPre * :call digitme#Ping()
+autocmd InsertCharPre * :call digitme#ping()
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
