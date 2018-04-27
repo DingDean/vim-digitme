@@ -3,6 +3,10 @@ A Vim plugin to abstract your coding process.
 
 It's meant to be used with project [DigitalMe](#).
 
+## Prerequisite
+
+* vim >= 8.0
+
 ## Functionality
 
 The whole purpose of this plugin is to capture editor autocmd events. 
