@@ -4,6 +4,11 @@
 " Maintainer:	Ke Ding <me@dingkewz.com>
 " License:	This file is placed in the public domain.
 
+" channel only available in vim version >= 8.0
+if v:version < 800
+  finish
+endif
+
 " Only load once
 if exists("g:loaded_digitme")
   finish
@@ -39,8 +44,11 @@ endfunction
 
 call digitme#init()
 call s:OpenChannel()
-autocmd CursorMove * :call digitme#ping()
-autocmd CursorMoveI * :call digitme#ping()
+augroup digitme
+  autocmd!
+  autocmd CursorMoved * :call digitme#ping()
+  autocmd CursorMovedI * :call digitme#ping()
+augroup END
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
