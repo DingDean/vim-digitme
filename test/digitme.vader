@@ -3,3 +3,27 @@ Execute (digitme#init()):
 
 Then(Default Global Variables are set):
   AssertEqual 'localhost:8763', g:hitme#clientUrl
+
+Execute(digitme#validate: valid message must be a dictionary ):
+  Assert digitme#validate(1) == v:false
+  Assert digitme#validate('string') == v:false
+  Assert digitme#validate(function("tr")) == v:false
+  Assert digitme#validate([]) == v:false
+  Assert digitme#validate(0.0) == v:false
+  Assert digitme#validate(v:false) == v:false
+  Assert digitme#validate(v:none) == v:false
+## TODO: test against job and channel
+
+Execute(digitme#validate: valid message must have event property of string type ):
+  Assert digitme#validate( {'noevent': 1} ) == v:false
+  Assert digitme#validate( { 'event': 1 } ) == v:false
+  Assert digitme#validate( { 'event': function("tr") } ) == v:false
+  Assert digitme#validate( { 'event': [] } ) == v:false
+  Assert digitme#validate( { 'event': 0.0 } ) == v:false
+  Assert digitme#validate( { 'event': v:false } ) == v:false
+  Assert digitme#validate( { 'event': v:none } ) == v:false
+  AssertEqual v:true, digitme#validate( { 'event': 'string' } )
+    \ ,"event must be a string"
+
+Execute(digitme#send: can't send invalid message):
+  AssertEqual v:false, digitme#send(v:none)
