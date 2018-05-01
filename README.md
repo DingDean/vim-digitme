@@ -18,12 +18,10 @@ The following autocmd events would be captured:
 
 - [x] CursorMoved
 - [x] CursorMovedI
+- [ ] BufEnter - record the filename, filetype, editing time
+- [ ] BufLeave
 - [ ] VimEnter?
 - [ ] VimLeave?
-- [ ] FocusGained?
-- [ ] FocusLost?
-- [ ] CursorHold?
-- [ ] CursorHoldI?
 - [ ] InsertEnter?
 
 ## Use Case
