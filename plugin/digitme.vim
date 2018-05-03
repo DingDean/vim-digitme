@@ -25,7 +25,7 @@ endfunction
 
 " Ping Client When Cursor Moved
 function! digitme#ping()
-  call digitme#send( {'event': 'ping', 'data': {'ts': localtime()}} )
+  call digitme#send( {'event': 'ping'} )
 endfunction
 
 function! s:OpenChannel()
@@ -56,6 +56,7 @@ function! digitme#send( msg )
   if !l:isValid
     return v:false
   endif
+  let a:msg['ts'] = localtime()
   if ch_status( s:channel ) == "open"
     call ch_sendexpr( s:channel, a:msg )
     return v:true
