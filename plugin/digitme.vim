@@ -2,7 +2,7 @@
 " Description: A Vim Plugin To Abstract Coding Process
 " Last Change:	2018 May 04
 " Maintainer:	Ke Ding <me@dingkewz.com>
-" License:	This file is placed in the public domain.
+" License:	MIT
 
 " channel only available in vim version >= 8.0
 if v:version < 800
