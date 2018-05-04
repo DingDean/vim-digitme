@@ -1,6 +1,6 @@
 " File: digitme
 " Description: A Vim Plugin To Abstract Coding Process
-" Last Change:	2018 Apr 25
+" Last Change:	2018 May 04
 " Maintainer:	Ke Ding <me@dingkewz.com>
 " License:	This file is placed in the public domain.
 
@@ -25,6 +25,11 @@ endfunction
 
 " Ping Client When Cursor Moved
 function! digitme#ping()
+  " TODO: 2018-05-04 Benchmark and Improve
+  " ping method should be benchmarked, because slight lag is present
+  " when the plugin is on.
+  " maybe add some restrictions on how many times a ping event can be
+  " sent during a certain interval
   call digitme#send( {'event': 'ping'} )
 endfunction
 
@@ -66,12 +71,33 @@ function! digitme#send( msg )
   endif
 endfunction
 
+function! s:GetFileInfo ()
+  let l:info = {}
+  let l:info.filename = expand('%:t')
+  let l:info.filetype = expand('%:e')
+  return l:info
+endfunction
+
+function! digitme#bufenter ()
+  let l:msg = {'event': 'bufEnter'}
+  let l:msg.data = s:GetFileInfo()
+  call digitme#send( l:msg )
+endfunction
+
+function! digitme#bufleave ()
+  let l:msg = {'event': 'bufLeave'}
+  let l:msg.data = s:GetFileInfo()
+  call digitme#send( l:msg )
+endfunction
+
 call digitme#init()
 call s:OpenChannel()
 augroup digitme
   autocmd!
   autocmd CursorMoved * :call digitme#ping()
   autocmd CursorMovedI * :call digitme#ping()
+  autocmd BufEnter * :call digitme#bufenter()
+  autocmd BufLeave * :call digitme#bufleave()
 augroup END
 
 let &cpo = s:save_cpo
