@@ -33,6 +33,18 @@ function! digitme#ping()
   call digitme#send( {'event': 'ping'} )
 endfunction
 
+function! digitme#bufenter ()
+  let l:msg = {'event': 'bufEnter'}
+  let l:msg.data = s:GetFileInfo()
+  call digitme#send( l:msg )
+endfunction
+
+function! digitme#bufleave ()
+  let l:msg = {'event': 'bufLeave'}
+  let l:msg.data = s:GetFileInfo()
+  call digitme#send( l:msg )
+endfunction
+
 function! s:OpenChannel()
   if !exists('s:channel')
     let s:channel = ch_open(g:hitme#clientUrl)
@@ -78,23 +90,10 @@ function! s:GetFileInfo ()
   return l:info
 endfunction
 
-function! digitme#bufenter ()
-  let l:msg = {'event': 'bufEnter'}
-  let l:msg.data = s:GetFileInfo()
-  call digitme#send( l:msg )
-endfunction
-
-function! digitme#bufleave ()
-  let l:msg = {'event': 'bufLeave'}
-  let l:msg.data = s:GetFileInfo()
-  call digitme#send( l:msg )
-endfunction
-
 call digitme#init()
 call s:OpenChannel()
 augroup digitme
   autocmd!
-  autocmd CursorMoved * :call digitme#ping()
   autocmd CursorMovedI * :call digitme#ping()
   autocmd BufEnter * :call digitme#bufenter()
   autocmd BufLeave * :call digitme#bufleave()
