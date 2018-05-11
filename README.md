@@ -9,6 +9,7 @@ It's meant to be used with project [DigitalMe](#).
 
 ## Functionality
 
+### Collect Editing Datas
 The whole purpose of this plugin is to capture editor autocmd events. 
 When a event gets captured, a corresponding handler would be invoked 
 to gather and channel the data to the [DigitalMe](#) client 
@@ -16,13 +17,20 @@ running on your local machine.
 
 The following autocmd events would be captured:
 
-- [x] CursorMoved
+- [x] ~~CursorMoved~~
 - [x] CursorMovedI
-- [ ] BufEnter - record the filename, filetype, editing time
-- [ ] BufLeave
+- [x] BufEnter - record the filename, filetype, editing time
+- [x] BufLeave
 - [ ] VimEnter?
 - [ ] VimLeave?
 - [ ] InsertEnter?
+
+### Tomato Clock
+Pomodoro Timer in Vim
+
+* [ ] A dedicated window to setup, teardown timers
+* [ ] Sync data to DigitalMe client
+* [ ] Integrate with airline
 
 ## Use Case
 
