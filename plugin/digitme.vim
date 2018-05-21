@@ -20,19 +20,19 @@ set cpo&vim
 
 " Default Plugin Options
 function! digitme#init()
-  let g:hitme#clientUrl = get(g:, 'hitme#clientUrl', "localhost:8763")
-  let g:hitme#client = get(g:, 'hitme#client', 'digitme-cli')
-  if executable(g:hitme#client) == 0
+  let g:digitme#clientUrl = get(g:, 'hitme#clientUrl', "localhost:8763")
+  let g:digitme#client = get(g:, 'hitme#client', 'digitme-cli')
+  if executable(g:digitme#client) == 0
     echom "DigitalMe Client is not installed"
     return
   endif
 
   "check client is running
-  let isRunning = system(g:hitme#client . ' check')
+  let isRunning = system(g:digitme#client . ' check')
   if isRunning == 0
     echom "DigitalMe Client is not running, starting now"
-    system(g:hitme#client . ' start')
-    if system(g:hitme#client . ' check' == 0)
+    system(g:digitme#client . ' start')
+    if system(g:digitme#client . ' check' == 0)
       echom "Failed to start DigitalMe Client"
       return
     endif
@@ -63,17 +63,17 @@ endfunction
 
 function! s:MyCloseCallback(channel)
   echom "DigitalMe channel is closed"
-  let g:hitme#client_is_set = v:false
+  let g:digitme#client_is_set = v:false
 endfunction
 
 function! s:OpenChannel()
-  let s:channel = ch_open(g:hitme#clientUrl,
+  let s:channel = ch_open(g:digitme#clientUrl,
         \ {"close_cb": "s:MyCloseCallback"})
   if ch_status(s:channel) == "fail"
     echom "Failed to establish digitalme channel"
-    let g:hitme#client_is_set = v:false
+    let g:digitme#client_is_set = v:false
   endif
-  let g:hitme#client_is_set = v:true
+  let g:digitme#client_is_set = v:true
 endfunction
 
 function! digitme#validate( msg )
@@ -90,7 +90,7 @@ function! digitme#validate( msg )
 endfunction
 
 function! digitme#send( msg )
-  if g:hitme#client_is_set != v:true
+  if g:digitme#client_is_set != v:true
     return
   endif
 
@@ -121,7 +121,6 @@ augroup digitme
   autocmd BufEnter * :call digitme#bufenter()
   autocmd BufLeave * :call digitme#bufleave()
 augroup END
-
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
