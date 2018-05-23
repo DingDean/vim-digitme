@@ -20,8 +20,9 @@ set cpo&vim
 
 " Default Plugin Options
 function! digitme#init()
-  let g:digitme#clientUrl = get(g:, 'hitme#clientUrl', "localhost:8763")
-  let g:digitme#client = get(g:, 'hitme#client', 'digitme-cli')
+  let g:digitme#clientUrl = get(g:, 'digitme#clientUrl', "localhost:8763")
+  let g:digitme#client = get(g:, 'digitme#client', 'digitme-cli')
+  let g:digitme#tomatoState = 1 "idle
   if executable(g:digitme#client) == 0
     echom "DigitalMe Client is not installed"
     return
@@ -39,6 +40,18 @@ function! digitme#init()
   endif
 
   call s:OpenChannel()
+  call digitme#tomatoInit()
+
+  augroup digitme
+    autocmd!
+    autocmd CursorMovedI * :call digitme#ping()
+    autocmd BufEnter * :call digitme#bufenter()
+    autocmd BufLeave * :call digitme#bufleave()
+  augroup END
+
+  command DigitTomatoStart :call digitme#tomatoStart()
+  command DigitTomatoPause :call digitme#tomatoPause()
+  command DigitTomatoAbandon :call digitme#tomatoAbandon()
 endfunction
 
 " Ping Client When Cursor Moved
@@ -46,29 +59,36 @@ function! digitme#ping()
   " TODO: 2018-05-16 Benchmark and Improve
   " eventhough lag is not noticed,
   " still ping method should be benchmarked
-  call digitme#send( {'event': 'ping'} )
+  let l:msg = {'event': 'ping'}
+  if digitme#canSend(l:msg) == v:true
+    call ch_sendexpr( s:channel, l:msg )
+  endif
 endfunction
 
 function! digitme#bufenter ()
   let l:msg = {'event': 'bufEnter'}
   let l:msg.data = s:GetFileInfo()
-  call digitme#send( l:msg )
+  if digitme#canSend( l:msg ) == v:true
+    call ch_sendexpr( s:channel, l:msg )
+  endif
 endfunction
 
 function! digitme#bufleave ()
   let l:msg = {'event': 'bufLeave'}
   let l:msg.data = s:GetFileInfo()
-  call digitme#send( l:msg )
+  if digitme#canSend( l:msg ) == v:true
+    call ch_sendexpr( s:channel, l:msg )
+  endif
 endfunction
 
-function! s:MyCloseCallback(channel)
+function! digitme#closeCallback(channel)
   echom "DigitalMe channel is closed"
   let g:digitme#client_is_set = v:false
 endfunction
 
 function! s:OpenChannel()
   let s:channel = ch_open(g:digitme#clientUrl,
-        \ {"close_cb": "s:MyCloseCallback"})
+        \ {"close_cb": "digitme#closeCallback"})
   if ch_status(s:channel) == "fail"
     echom "Failed to establish digitalme channel"
     let g:digitme#client_is_set = v:false
@@ -89,7 +109,7 @@ function! digitme#validate( msg )
   return v:true
 endfunction
 
-function! digitme#send( msg )
+function! digitme#canSend( msg )
   if g:digitme#client_is_set != v:true
     return
   endif
@@ -100,11 +120,114 @@ function! digitme#send( msg )
   endif
   let a:msg['ts'] = localtime()
   if ch_status( s:channel ) == "open"
-    call ch_sendexpr( s:channel, a:msg )
     return v:true
   else
     return v:false
   endif
+endfunction
+
+" Query Tomato Status
+function! digitme#tomatoInit()
+  let l:msg = {'event': 'tomatoQuery'}
+  if digitme#canSend( l:msg ) == v:true
+    call ch_sendexpr( s:channel, l:msg,
+          \ {'callback': 'digitme#tomatoInitCallback'} )
+  endif
+endfunction
+
+function! digitme#tomatoInitCallback(channel, msg)
+  let l:state = a:msg.state
+  let l:tEnd = a:msg.tEnd
+
+  let g:digitme#tomatoState = l:state
+  if l:tEnd != 0
+    let g:digitme#tomatoEndTime = a:tEnd
+  endif
+endfunction
+
+" Start the default timer with 25m interval
+function! digitme#tomatoStart()
+  echom 'tomato start'
+  if g:digitme#tomatoState == 0
+    echom 'tomato started'
+    return
+  endif
+  let l:msg = {'event': 'tomatoStart'}
+  let l:msg.data = {'name': 'default'}
+  if digitme#canSend(l:msg) == v:true
+    call ch_sendexpr( s:channel, l:msg,
+          \ {'callback':'digitme#tomatoStartCallback'})
+  endif
+endfunction
+
+function! digitme#tomatoStartCallback(channel, msg)
+  if a:msg.ok == 0
+    echom 'starting timer'
+    let g:digitme#tomatoState = 0 "active
+    let g:digitme#tomatoEndTime = a:msg.tEnd
+  endif
+endfunction
+
+function! digitme#tomatoPause()
+  let l:msg = {'event': 'tomatoPause'}
+  if digitme#canSend(l:msg) == v:true
+    call ch_sendexpr( s:channel, l:msg,
+          \ {'callback': 'digitme#tomatoPauseCallback'})
+  endif
+endfunction
+
+function! digitme#tomatoPauseCallback(channel, msg)
+  if a:msg.ok == 0
+    echom 'timer paused'
+    let g:digitme#tomatoState = 2 "paused
+  endif
+endfunction
+
+" Called by digitme client automatically when timer is finished
+function! digitme#tomatoFinish()
+  echom "timer finished"
+  let g:digitme#tomatoState = 1 "idle
+endfunction
+
+function! digitme#tomatoAbandon()
+  let l:msg = {'event': 'tomatoAbandon'}
+  if digitme#canSend(l:msg) == v:true
+    call ch_sendexpr( s:channel, l:msg,
+          \ {'callback': 'digitme#tomatoAbandonCallback'})
+  endif
+endfunction
+
+function! digitme#tomatoAbandonCallback(channel, msg)
+  if a:msg.ok == 0
+    echom 'timer abandoned'
+    let g:digitme#tomatoState = 1 "idle
+  endif
+endfunction
+
+function! digitme#tomatoGet()
+  if g:digitme#tomatoState == 0
+    let l:ts = g:digitme#tomatoEndTime
+    if l:ts < localtime() * 1000
+      return ''
+    endif
+    return printf('工作中[%d]', digitme#getRemainTime( l:ts ) )
+  endif
+  if g:digitme#tomatoState == 1
+    return '-'
+  endif
+  return '暂停中'
+endfunction
+
+function! digitme#getRemainTime(ts)
+  let diff = a:ts - localtime() * 1000
+  if diff < 0
+    return ''
+  endif
+  let remain = diff / 60000
+  if (remain > 0)
+    return printf('%d m', remain)
+  else
+    return printf('%d s', (remain/1000) % 60)
 endfunction
 
 function! s:GetFileInfo ()
@@ -115,12 +238,6 @@ function! s:GetFileInfo ()
 endfunction
 
 call digitme#init()
-augroup digitme
-  autocmd!
-  autocmd CursorMovedI * :call digitme#ping()
-  autocmd BufEnter * :call digitme#bufenter()
-  autocmd BufLeave * :call digitme#bufleave()
-augroup END
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

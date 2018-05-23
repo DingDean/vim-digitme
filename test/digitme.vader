@@ -27,5 +27,9 @@ Execute(digitme#validate: valid message must have event property of string type 
   AssertEqual v:true, digitme#validate( { 'event': 'string' } )
     \ ,"event must be a string"
 
-Execute(digitme#send: can't send invalid message):
-  AssertEqual v:false, digitme#send(v:none)
+Execute(digitme#canSend: can't send invalid message):
+  AssertEqual v:false, digitme#canSend(v:none)
+
+Execute(digitme#getRemainTime:):
+  AssertEqual digitme#getRemainTime( localtime() * 1000 + 25 * 60000 )
+    \ , '25'
