@@ -2,9 +2,9 @@ Execute (digitme#init()):
   call digitme#init()
 
 Then(Default Global Variables are set):
-  AssertEqual 'localhost:8763', g:hitme#clientUrl
-  AssertEqual 'digitme-cli', g:hitme#client
-  AssertEqual v:true, g:hitme#client_is_set
+  AssertEqual 'localhost:8763', g:digitme#clientUrl
+  AssertEqual 'digitme-cli', g:digitme#client
+  AssertEqual v:true, g:digitme#client_is_set
 
 Execute(digitme#validate: valid message must be a dictionary ):
   Assert digitme#validate(1) == v:false
@@ -27,5 +27,9 @@ Execute(digitme#validate: valid message must have event property of string type 
   AssertEqual v:true, digitme#validate( { 'event': 'string' } )
     \ ,"event must be a string"
 
-Execute(digitme#send: can't send invalid message):
-  AssertEqual v:false, digitme#send(v:none)
+Execute(digitme#canSend: can't send invalid message):
+  AssertEqual v:false, digitme#canSend(v:none)
+
+Execute(digitme#getRemainTime:):
+  AssertEqual digitme#getRemainTime( localtime() * 1000 + 25 * 60000 )
+    \ , '25'

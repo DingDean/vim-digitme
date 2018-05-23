@@ -29,8 +29,7 @@ The following autocmd events would be captured:
 Pomodoro Timer in Vim
 
 * [ ] A dedicated window to setup, teardown timers
-* [ ] Sync data to DigitalMe client
-* [ ] Integrate with airline
+* [x] Integrate with lightline
 
 ## Use Case
 
