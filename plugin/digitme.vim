@@ -163,9 +163,9 @@ endfunction
 
 function! digitme#tomatoStartCallback(channel, msg)
   if a:msg.ok == 0
-    echom 'starting timer'
     let g:digitme#tomatoState = 0 "active
     let g:digitme#tomatoEndTime = a:msg.tEnd
+    call lightline#update()
   endif
 endfunction
 
@@ -179,9 +179,11 @@ endfunction
 
 function! digitme#tomatoPauseCallback(channel, msg)
   if a:msg.ok == 0
-    echom 'timer paused with resume time ' . a:msg.tEnd
     let g:digitme#tomatoState = 2 "paused
     let g:digitme#tomatoEndTime = a:msg.tEnd
+    call lightline#update()
+  else
+    echom 'Failed to pause timer'
   endif
 endfunction
 
@@ -195,15 +197,16 @@ endfunction
 
 function! digitme#tomatoAbandonCallback(channel, msg)
   if a:msg.ok == 0
-    echom 'timer abandoned'
     let g:digitme#tomatoState = 1 "idle
+    call lightline#update()
   endif
 endfunction
 
 " Called by digitme client automatically when timer is finished
 function! digitme#tomatoFinish()
-  echom "timer finished"
+  echom "Take a rest~"
   let g:digitme#tomatoState = 1 "idle
+  call lightline#update()
 endfunction
 
 function! digitme#tomatoResume()
@@ -221,9 +224,9 @@ function! digitme#tomatoResumeCallback(channel, msg)
 endfunction
 
 function! digitme#tomatoResumeRemote(tEnd)
-  echom "timer resumed with endtime " . a:tEnd
   let g:digitme#tomatoState = 0
   let g:digitme#tomatoEndTime = a:tEnd
+  call lightline#update()
 endfunction
 
 function! digitme#tomatoGet()
