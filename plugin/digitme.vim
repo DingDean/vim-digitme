@@ -52,6 +52,7 @@ function! digitme#init()
 
   command DigitTomatoStart :call digitme#tomatoStart()
   command DigitTomatoPause :call digitme#tomatoPause()
+  command DigitTomatoResume :call digitme#tomatoResume()
   command DigitTomatoAbandon :call digitme#tomatoAbandon()
 endfunction
 
