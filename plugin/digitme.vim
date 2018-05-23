@@ -23,6 +23,7 @@ function! digitme#init()
   let g:digitme#clientUrl = get(g:, 'digitme#clientUrl', "localhost:8763")
   let g:digitme#client = get(g:, 'digitme#client', 'digitme-cli')
   let g:digitme#tomatoState = 1 "idle
+  let g:digitme#tomatoEndTime = 0
   if executable(g:digitme#client) == 0
     echom "DigitalMe Client is not installed"
     return
@@ -141,7 +142,7 @@ function! digitme#tomatoInitCallback(channel, msg)
 
   let g:digitme#tomatoState = l:state
   if l:tEnd != 0
-    let g:digitme#tomatoEndTime = a:tEnd
+    let g:digitme#tomatoEndTime = l:tEnd
   endif
 endfunction
 
@@ -178,15 +179,10 @@ endfunction
 
 function! digitme#tomatoPauseCallback(channel, msg)
   if a:msg.ok == 0
-    echom 'timer paused'
+    echom 'timer paused with resume time ' . a:msg.tEnd
     let g:digitme#tomatoState = 2 "paused
+    let g:digitme#tomatoEndTime = a:msg.tEnd
   endif
-endfunction
-
-" Called by digitme client automatically when timer is finished
-function! digitme#tomatoFinish()
-  echom "timer finished"
-  let g:digitme#tomatoState = 1 "idle
 endfunction
 
 function! digitme#tomatoAbandon()
@@ -204,30 +200,57 @@ function! digitme#tomatoAbandonCallback(channel, msg)
   endif
 endfunction
 
+" Called by digitme client automatically when timer is finished
+function! digitme#tomatoFinish()
+  echom "timer finished"
+  let g:digitme#tomatoState = 1 "idle
+endfunction
+
+function! digitme#tomatoResume()
+  let l:msg = {'event': 'tomatoResume'}
+  if digitme#canSend(l:msg) == v:true
+    call ch_sendexpr( s:channel, l:msg,
+          \ {'callback': 'digitme#tomatoResumeCallback'})
+  endif
+endfunction
+
+function! digitme#tomatoResumeCallback(channel, msg)
+  if a:msg.ok == 1
+    echom "timer resumed failed"
+  endif
+endfunction
+
+function! digitme#tomatoResumeRemote(tEnd)
+  echom "timer resumed with endtime " . a:tEnd
+  let g:digitme#tomatoState = 0
+  let g:digitme#tomatoEndTime = a:tEnd
+endfunction
+
 function! digitme#tomatoGet()
+  let l:ts = get(g:,'digitme#tomatoEndTime', 0)
   if g:digitme#tomatoState == 0
-    let l:ts = g:digitme#tomatoEndTime
     if l:ts < localtime() * 1000
       return ''
     endif
-    return printf('工作中[%d]', digitme#getRemainTime( l:ts ) )
+    return printf('工作中[%s]', digitme#getRemainTime( l:ts ) )
   endif
   if g:digitme#tomatoState == 1
     return '-'
   endif
-  return '暂停中'
+  return printf('暂停中[%s]', digitme#getRemainTime( l:ts ) )
 endfunction
 
 function! digitme#getRemainTime(ts)
-  let diff = a:ts - localtime() * 1000
+  let l:diff = a:ts - localtime() * 1000
   if diff < 0
     return ''
   endif
-  let remain = diff / 60000
-  if (remain > 0)
-    return printf('%d m', remain)
+  let l:minutes = l:diff / 60000
+  let l:seconds = (l:diff / 1000) % 60
+  if (l:minutes == 0)
+    return printf('%ds', l:seconds)
   else
-    return printf('%d s', (remain/1000) % 60)
+    return printf('%dm+', l:minutes)
 endfunction
 
 function! s:GetFileInfo ()
