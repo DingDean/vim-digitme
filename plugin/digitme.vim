@@ -147,6 +147,12 @@ function! digitme#tomatoInitCallback(channel, msg)
   endif
 endfunction
 
+function! digitme#tomatoCallback(channel, msg)
+  if a:msg.ok == 1
+    echom 'Timer action failed: ' . a:msg.err
+  endif
+endfunction
+
 " Start the default timer with 25m interval
 function! digitme#tomatoStart()
   echom 'tomato start'
@@ -158,15 +164,7 @@ function! digitme#tomatoStart()
   let l:msg.data = {'name': 'default'}
   if digitme#canSend(l:msg) == v:true
     call ch_sendexpr( s:channel, l:msg,
-          \ {'callback':'digitme#tomatoStartCallback'})
-  endif
-endfunction
-
-function! digitme#tomatoStartCallback(channel, msg)
-  if a:msg.ok == 0
-    let g:digitme#tomatoState = 0 "active
-    let g:digitme#tomatoEndTime = a:msg.tEnd
-    call lightline#update()
+          \ {'callback':'digitme#tomatoCallback'})
   endif
 endfunction
 
@@ -174,17 +172,7 @@ function! digitme#tomatoPause()
   let l:msg = {'event': 'tomatoPause'}
   if digitme#canSend(l:msg) == v:true
     call ch_sendexpr( s:channel, l:msg,
-          \ {'callback': 'digitme#tomatoPauseCallback'})
-  endif
-endfunction
-
-function! digitme#tomatoPauseCallback(channel, msg)
-  if a:msg.ok == 0
-    let g:digitme#tomatoState = 2 "paused
-    let g:digitme#tomatoEndTime = a:msg.tEnd
-    call lightline#update()
-  else
-    echom 'Failed to pause timer'
+          \ {'callback':'digitme#tomatoCallback'})
   endif
 endfunction
 
@@ -192,14 +180,7 @@ function! digitme#tomatoAbandon()
   let l:msg = {'event': 'tomatoAbandon'}
   if digitme#canSend(l:msg) == v:true
     call ch_sendexpr( s:channel, l:msg,
-          \ {'callback': 'digitme#tomatoAbandonCallback'})
-  endif
-endfunction
-
-function! digitme#tomatoAbandonCallback(channel, msg)
-  if a:msg.ok == 0
-    let g:digitme#tomatoState = 1 "idle
-    call lightline#update()
+          \ {'callback': 'digitme#tomatoCallback'})
   endif
 endfunction
 
@@ -207,27 +188,21 @@ endfunction
 function! digitme#tomatoFinish()
   echom "Take a rest~"
   let g:digitme#tomatoState = 1 "idle
-  call lightline#update()
+  call s:UpdateUi()
 endfunction
 
 function! digitme#tomatoResume()
   let l:msg = {'event': 'tomatoResume'}
   if digitme#canSend(l:msg) == v:true
     call ch_sendexpr( s:channel, l:msg,
-          \ {'callback': 'digitme#tomatoResumeCallback'})
+          \ {'callback': 'digitme#tomatoCallback'})
   endif
 endfunction
 
-function! digitme#tomatoResumeCallback(channel, msg)
-  if a:msg.ok == 1
-    echom "timer resumed failed"
-  endif
-endfunction
-
-function! digitme#tomatoResumeRemote(tEnd)
-  let g:digitme#tomatoState = 0
+function! digitme#tomatoStateSync(state, tEnd)
+  let g:digitme#tomatoState = a:state
   let g:digitme#tomatoEndTime = a:tEnd
-  call lightline#update()
+  call s:UpdateUi()
 endfunction
 
 function! digitme#tomatoGet()
@@ -262,6 +237,12 @@ function! s:GetFileInfo ()
   let l:info.filename = expand('%:t')
   let l:info.filetype = expand('%:e')
   return l:info
+endfunction
+
+function! s:UpdateUi()
+  if exists('*lightline#update') == 1
+    call lightline#update()
+  endif
 endfunction
 
 call digitme#init()
