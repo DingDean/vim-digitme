@@ -1,6 +1,6 @@
 " File: digitme
 " Description: A Vim Plugin To Abstract Coding Process
-" Last Change:	2018 May 04
+" Last Change:	2018 May 22 
 " Maintainer:	Ke Ding <me@dingkewz.com>
 " License:	MIT
 
@@ -157,8 +157,13 @@ endfunction
 function! digitme#tomatoStart()
   echom 'tomato start'
   if g:digitme#tomatoState == 0
-    echom 'tomato started'
-    return
+    if g:digitme#tomatoEndTime > localtime() * 1000
+      echom 'removing expired timer'
+      let g:digitme#tomatoState = 1
+    else 
+      echom 'tomato started'
+      return
+    endif
   endif
   let l:msg = {'event': 'tomatoStart'}
   let l:msg.data = {'name': 'default'}
@@ -209,7 +214,7 @@ function! digitme#tomatoGet()
   let l:ts = get(g:,'digitme#tomatoEndTime', 0)
   if g:digitme#tomatoState == 0
     if l:ts < localtime() * 1000
-      return ''
+      return '-'
     endif
     return printf('工作中[%s]', digitme#getRemainTime( l:ts ) )
   endif
