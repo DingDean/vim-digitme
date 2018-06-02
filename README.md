@@ -28,6 +28,13 @@ The following autocmd events would be captured:
 ### Tomato Clock
 Pomodoro Timer in Vim
 
+Following user commands are available:
+
+- DigitmeTomatoStart: To start a default timer lasts for 25 minutes 
+- DigitmeTomatoPause: To pause a running timer, a timer can only be stop
+once
+- DigitmeTomatoAbandon: To abandon the current timer
+
 * [ ] A dedicated window to setup, teardown timers
 * [x] Integrate with lightline
 
