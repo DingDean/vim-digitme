@@ -32,7 +32,6 @@ function! digitme#init()
   "check client is running
   let isRunning = system(g:digitme#client . ' check')
   if isRunning == 0
-    echom "DigitalMe Client is not running, starting now"
     slient let e = system(g:digitme#client . ' start')
     if e == 1
       echom "Failed to start DigitalMe Client"
