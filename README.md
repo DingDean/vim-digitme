@@ -6,6 +6,7 @@ A data collector for project [DigitalMe](https://github.com/DingDean/DigitalMe)
 ## Prerequisite
 
 * vim >= 8.0
+* [digitme-cli](https://github.com/DingDean/client-digitalme)
 
 ## Functionality
 
